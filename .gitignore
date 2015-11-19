@@ -55,3 +55,8 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# webstorm editor files
+.idea/
+*.iml
+.DS_Store
