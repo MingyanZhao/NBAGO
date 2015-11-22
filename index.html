@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+
+<style>
+.shootingchart{
+	background:url("img/nbahalfcourt.jpg")
+}
+</style>
+<head>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+	
+	<meta charset = "utf-8">
+	<meta name="viewport" content = "width=device-width, initial-scale=1.0">
+	<title> NBA GO </title>
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<link href="css/font-awesome.css" rel="stylesheet" type="text/css">
+	<link href="css/main.css" rel="stylesheet" type="text/scc">
+<style>
+
+</style>
+</head>
+
+<body>
+	<div class="container">
+		<div class="col-md-1">
+			<img src="img/NBA_logo.png" height="80">
+		</div>
+		
+		<div class="col-md-10">
+			<p><h1><a href="index.html"><strong>NBA GO</strong> </a></h1>
+		</div>
+	</div>
+	
+	<div class="container">	
+		<div class="navbar navbar-default" style="margin:0px;">
+			<div class="navbar-header col-md-1">
+				<ul class="nav nav-pills">
+				<li role="presentation" class="active"><a href="index.html">HOME</a></li>
+			</ul>
+		</div>
+	</div>
+
+	
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+<script src="js/jquery.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+</body>
+
+<script>
+
+	shootingChart();
+	
+	var shootingChartDiv = d3.select("body")
+							.attr("class", "container")
+							.append("div")
+							
+	var courtimgwidth = 500
+	var courtimgheight = 472
+	var coordinateX = 50;
+	var coordinateY = 47.2;
+	function shootingChart(team)
+	{
+		
+		d3.csv("datasets/2006-2007.regular_season/20061031.PHXLAL.csv", function(err, d){
+			if(err) console.log(err);
+			var maxx = 0;
+			var maxy = 0;
+			d.forEach(function(d)
+			{
+				d.x = +d.x;
+				d.y = +d.y;
+				console.log("coordinates " + d.period + " " + d.time + " : " + d.x + "," + d.y);
+			})
+
+			shootingChartDiv.append("div")
+			
+			var shootsvg = shootingChartDiv.append("svg")	
+						.attr("width", courtimgwidth)
+						.attr("height", courtimgheight)
+						.attr("class", "shootingchart")
+				
+			var xscale = d3.scale.linear()
+							.domain([0, coordinateX])
+							.range([0, courtimgwidth]);
+							
+			var yscale = d3.scale.linear()
+							.domain([0, coordinateY])
+							.range([0, courtimgwidth]);
+			
+			console.log(maxy);
+			
+			shotgroup = shootsvg.selectAll("g")
+					.data(d)
+					.enter()
+						.append("g")
+			shotgroup.append("circle")		
+						.attr("transform", function (d, i){return "translate(" + xscale(d.x) + "," + (yscale(d.y) - 5.25) + ")" })
+						.attr("r",5)
+						.attr("fill", function(d){
+						if(d.result == "made") return "red";
+						else if(d.result == "missed") return "green";
+										})
+						
+			
+		})
+	}
+
+</script>
