@@ -14,7 +14,7 @@
 .county-boundary {
   fill: none;
   stroke: black;
-  stroke-width: .5px;
+  stroke-width: 1px;
 }
 
 .state-boundary {
@@ -61,13 +61,13 @@
 		</div>
 	</div>
 
-	
+<script src="//d3js.org/d3.v3.min.js"></script>
+<script src="//d3js.org/topojson.v1.min.js"></script>	
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
 <script src="js/jquery.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
-<script src="//d3js.org/d3.v3.min.js"></script>
-<script src="//d3js.org/topojson.v1.min.js"></script>
+
 </body>
 
 <script>
@@ -111,7 +111,11 @@
 	
 	rightDiv.append("p")
 			.text("also is a testttttttttttttttt")	
-	
+
+	var tip = d3.tip()
+
+
+			
 	startPage();
 	//shootingChart();
 	function startPage(){
@@ -127,7 +131,7 @@
 		var usaMapSvg = mainDiv.append("svg")
 						.attr("width", mapWidth)
 						.attr("height", mapHeight)
-						
+
 						
 		d3.json("datasets/usamap/usamap.json", function(error, us) {
 		
@@ -145,10 +149,8 @@
 			  .datum(topojson.mesh(us, us.objects.states, function(a, b) { return a !== b; }))
 			  .attr("class", "state-boundary")
 			  .attr("d", path);
-		
-			  			  
+			
 		})
-		
 		
 		d3.csv("datasets/usamap/arenaCoordinates.csv", function(err, d){
 			var coordinates = [];
@@ -161,15 +163,26 @@
 				coordinates[i] = projection([d.longtitude,d.latitude])
 			})		
 
+		
+		tip.attr('class', 'd3-tip')
+			.offset([-10, 0])
+			.html(function(d) {
+				return "<img src=\"img\/" + d.T +".jpg\" height=\"100\"></img>" 
+				+ "<p><strong>"+ d.Team +"</strong> <span style='color:red'></p>"
+				+ "<p><strong>Offensive Rating:</strong> <span style='color:red'>" + d.ORtg + "</span></p>"
+				+ "<p><strong>Deffensive Rating:</strong> <span style='color:red'>" + d.DRtg + "</span></p>"
+				+ "<p><strong>Pace:</strong> <span style='color:red'>" + d.Pace + "</span></p>";
+			})
 
-
-			
+		usaMapSvg.call(tip);
+		
 			var teamLogoGroup = usaMapSvg.selectAll("g")
 					.data(d)
 					.enter()
 						.append("g")
 			
 			var defs = teamLogoGroup.append("defs").attr("id", "imgdefs")
+			
 			
 			var catpattern = defs.append("pattern")
                         .attr("id", "catpattern")
@@ -190,11 +203,8 @@
 					.attr("cy", function (d, i){var co = coordinates[i];return co[1];})
 					.attr("r", 25)
 					.attr("fill", "url(#catpattern)")
-			
-
-			
-		
-			
+						.on('mouseover', tip.show)
+						.on('mouseout', tip.hide)
 			
 			/*				
 				teamLogoSvgs = teamLogoGroup.append("svg")	
