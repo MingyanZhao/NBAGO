@@ -7,24 +7,17 @@
 }
 
 .land {
-  fill: white;
-  stroke: black;
-}
-
-.county-boundary {
-  fill: none;
-  stroke: black;
-  stroke-width: 1px;
+  fill: #a6a6a6;
+  stroke: #99ccff;
+  stroke-width: 2px;
 }
 
 .state-boundary {
   fill: none;
-  stroke: black;
+  stroke: #99ccff;
+  stroke-width: 2px;
 }
 
-.GSW {
-	background:url("img/GSW.jpg")
-}
 </style>
 <head>
 
@@ -103,8 +96,9 @@
 	var mapHeight = 500;
 	
 	
-	var teamLogoWidth = 50;
-	var teamLogoHeight = 50;
+	var teamLogoWidth = 40;
+	var teamLogoRaduis = teamLogoWidth / 2;
+	var teamLogoHeight = teamLogoWidth;
 	
 	leftDiv.append("p")
 			.text("this is a testttttttttttttttt")
@@ -112,27 +106,24 @@
 	rightDiv.append("p")
 			.text("also is a testttttttttttttttt")	
 
+					var usaMapSvg = mainDiv.append("svg")
+						.attr("width", mapWidth)
+						.attr("height", mapHeight)
+			
+			
 	var tip = d3.tip()
 
-
-			
-	startPage();
-	//shootingChart();
-	function startPage(){
-		
 		var projection = d3.geo.albersUsa()
 				//.scale(1000)
 				.translate([mapWidth / 2, mapHeight / 2]);
 	
 		var path = d3.geo.path()
 				.projection(projection);
-		
-		
-		var usaMapSvg = mainDiv.append("svg")
-						.attr("width", mapWidth)
-						.attr("height", mapHeight)
-
-						
+			
+	startPage();
+	//shootingChart();
+	function startPage(){
+			
 		d3.json("datasets/usamap/usamap.json", function(error, us) {
 		
 			usaMapSvg.insert("path", ".graticule")
@@ -152,59 +143,9 @@
 			
 		})
 		
-		d3.csv("datasets/usamap/arenaCoordinates.csv", function(err, d){
-			var coordinates = [];
-	
-			d.forEach(function(d, i)
-			{
-				d.longtitude = +d.longtitude;
-				d.latitude = +d.latitude;
-				coordinates[i] = new Array();
-				coordinates[i] = projection([d.longtitude,d.latitude])
-			})		
-
+		d3.timer(drawTeamLogos, 500);
 		
-		tip.attr('class', 'd3-tip')
-			.offset([-10, 0])
-			.html(function(d) {
-				return "<img src=\"img\/" + d.T +".jpg\" height=\"100\"></img>" 
-				+ "<p><strong>"+ d.Team +"</strong> <span style='color:red'></p>"
-				+ "<p><strong>Offensive Rating:</strong> <span style='color:red'>" + d.ORtg + "</span></p>"
-				+ "<p><strong>Deffensive Rating:</strong> <span style='color:red'>" + d.DRtg + "</span></p>"
-				+ "<p><strong>Pace:</strong> <span style='color:red'>" + d.Pace + "</span></p>";
-			})
 
-		usaMapSvg.call(tip);
-		
-			var teamLogoGroup = usaMapSvg.selectAll("g")
-					.data(d)
-					.enter()
-						.append("g")
-			
-			var defs = teamLogoGroup.append("defs").attr("id", "imgdefs")
-			
-			
-			var catpattern = defs.append("pattern")
-                        .attr("id", "catpattern")
-                        .attr("height", 1)
-                        .attr("width", 1)
-                        .attr("x", "0")
-                        .attr("y", "0")
-			
-			catpattern.append("image")
-							.attr("xlink:href",function(d,i){return "img/" +  d.T + ".jpg"} )
-							.attr("x", 0)
-							.attr("y", 0)
-							.attr("width",teamLogoWidth)
-							.attr("height", teamLogoHeight)	
-						
-			circles = teamLogoGroup.append("circle")
-					.attr("cx", function (d, i){var co = coordinates[i];return co[0];})
-					.attr("cy", function (d, i){var co = coordinates[i];return co[1];})
-					.attr("r", 25)
-					.attr("fill", "url(#catpattern)")
-						.on('mouseover', tip.show)
-						.on('mouseout', tip.hide)
 			
 			/*				
 				teamLogoSvgs = teamLogoGroup.append("svg")	
@@ -223,8 +164,110 @@
 							.attr("width",teamLogoWidth)
 							.attr("height", teamLogoHeight)	
 				*/
-		})
 
+
+	}
+	
+	function drawTeamLogos()
+	{
+			d3.csv("datasets/usamap/arenaCoordinates.csv", function(err, d){
+			var coordinates = [];
+	
+			d.forEach(function(d, i)
+			{
+				d.longtitude = +d.longtitude;
+				d.latitude = +d.latitude;
+				coordinates[i] = new Array();
+				coordinates[i] = projection([d.longtitude,d.latitude])
+			})		
+
+
+		tip.attr('class', 'd3-tip')
+			.offset([-10, 0])
+			.html(function(d) {
+				return "<img src=\"img\/" + d.T +".svg\" height=\"100\"></img>" 
+				+ "<p><strong>"+ d.Team +"</strong> <span style='color:red'></p>"
+				+ "<p><strong>Offensive Rating:</strong> <span style='color:red'>" + d.ORtg + "</span></p>"
+				+ "<p><strong>Deffensive Rating:</strong> <span style='color:red'>" + d.DRtg + "</span></p>"
+				+ "<p><strong>Pace:</strong> <span style='color:red'>" + d.Pace + "</span></p>";
+			})
+
+		usaMapSvg.call(tip);
+		
+			var teamLogoGroup = usaMapSvg.selectAll("g")
+					.data(d)
+					.enter()
+						.append("g")
+			
+
+			var defs = teamLogoGroup.append("defs")
+			
+			
+			var catpattern = defs.append("pattern")
+                        .attr("id", function(d,i){return d.T;})
+                        .attr("height", 1)
+                        .attr("width", 1)
+                        .attr("x", "0")
+                        .attr("y", "0")
+			
+			catpattern.append("image")
+							.attr("id", function(d){ return "logoid_" + d.T})
+							.attr("xlink:href",function(d,i){return "img/" +  d.T + ".svg"} )
+							.attr("x", 0)
+							.attr("y", 0)
+							.attr("width",teamLogoWidth)
+							.attr("height", teamLogoHeight)	
+							.attr("opacity", 0)
+							.transition()
+								.duration(800)
+								.attr("opacity", 1)
+										
+			circles = teamLogoGroup.append("circle")
+					.attr("cx", function (d, i){var co = coordinates[i];return co[0];})
+					.attr("cy", function (d, i){var co = coordinates[i];return co[1];})
+					.attr("r", teamLogoRaduis)
+					.attr("fill", function (d,i){return "url(#"+d.T + ")"})
+					.on('mouseover', function(d, i){
+						d3.select(this)
+									.attr("fill", function (d,i){return "url(#"+d.T + ")"})
+									.transition()
+									.duration(200)
+									.attr("r", teamLogoRaduis * 3)
+									.transition()
+									.duration(50)
+									.attr("r", teamLogoRaduis * 2.8)
+									
+						teamLogoGroup.select("#logoid_" + d.T)
+									.transition()
+									.duration(200)
+									.attr("width",teamLogoWidth * 3)
+									.attr("height", teamLogoHeight * 3)	
+									.transition()
+									.duration(50)
+									.attr("width",teamLogoWidth * 2.8)
+									.attr("height", teamLogoHeight * 2.8)
+								
+					})
+					.on('mouseout', function(d, i){
+						d3.select(this).transition()
+									.duration(200)
+									.attr("r", teamLogoRaduis)
+									
+						teamLogoGroup.select("#logoid_" + d.T)
+									.transition()
+									.duration(200)
+									.attr("width",teamLogoWidth)
+									.attr("height", teamLogoHeight)	
+				
+					})
+
+					//.on('mouseover', tip.show)
+					//.on('mouseout', tip.hide)
+
+					//.on('mouseout', function)
+			
+			})
+	
 	}
 	
 	
