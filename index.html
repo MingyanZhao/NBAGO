@@ -202,6 +202,8 @@
 					{
 																
 						gamesOfSelectedTeam[gamesOfSelectedTeam.length] = d;
+						
+						/*
 						//console.log(gamesOfSelectedTeam);
 						var homemade = 0;
 						var awaymade = 0;
@@ -233,13 +235,15 @@
 							accuracyByTeam_Away[away] = accuracyByTeam_Away[away] == 0 ? awaymade / (awaymade + awaymissed) : (accuracyByTeam_Away[away] + awaymade / (awaymade + awaymissed)) / 2;
 							
 						})
+						}
+						*/
 					}
 					else 
 					{
 						return;
+					
 					}
 				}
-
 			})
 			drawBarChart(selectedteam, gamesOfSelectedTeam);
 		})
