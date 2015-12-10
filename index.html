@@ -176,6 +176,7 @@
 	
 	function setfilter()
 	{
+		/*
 		d3.csv("datasets/processed.csv", function(err, d){
 
 			//gamesOfSelectedTeam = [];
@@ -189,6 +190,7 @@
 			
 			//drawBarChart(selectedteam, gamesOfSelectedTeam);
 		})		
+		*/
 		
 	}
 	
@@ -220,7 +222,6 @@
 	}
 
 
-	var transitCrossfilter = crossfilter();
 	
 	function chooseTeam(selectedteam, season, startdate, enddate)
 	{
@@ -367,7 +368,6 @@
 					  
 	function drawBarChart(select, games)
 	{
-	
 		clearBarChartSvg();
 		
 		var xpositions = new Array;
@@ -448,7 +448,10 @@
 		gameBarChartSvg.selectAll("g").remove();
 		
 	}
-	
+
+		var q = queue(1);
+		var curDate
+		var filename	
 	
 	function brushmove() {
 		var brushy = d3.scale.linear().domain(xscale.range()).range(xscale.domain());
@@ -485,22 +488,31 @@
 		d3.selectAll(".PointsLossbar").style("opacity", function(d, i) {
 		  return i >= curGameStart && i <= curGameEnd || brush.empty() ? "1" : ".4";
 		});
-	  // Additional calculations happen here...
-	  // filterPoints();
-	  // colorPoints();
-	  // styleOpacity();
-	  
+		  	  
 		//selectedGamesDim = transitCrossfilter.dimension(function(d){ if(d.filename)return d.filename;});
-		dispatch.change(curGameStart, curGameEnd);
-		
+		for(i = curGameStart; i <= curGameEnd; i++)
+		{
+			curDate = changeFormat(gamesOfSelectedTeam[i].Date);
+			filename = "datasets/2009-2010.regular_season/" + curDate + "." + teamAbbreviation[gamesOfSelectedTeam[i].Visitor]
+						+ teamAbbreviation[gamesOfSelectedTeam[i].Home] + ".csv";
+			q.defer(d3.csv,filename);
+		}
+		q.await(updateVis);
 	}
 
+	function updateVis()
+	{
+		//console.log(arguments);
+		var d = arguments;
+		dispatch.change(d);
+	
+	}
+	
 	function resetBrush() {
 	  brush
 		.clear()
 		.event(d3.select(".brush"));
 	}
-	
 	
 	function changeFormat(date)
 	{
@@ -575,16 +587,11 @@
 	}
 	
 	
-	function drawshootchart()
+	function drawshootchart(d)
 	{
-		dispatch.on("change.drawshootchart", function(srartIndex, stopIndex) {
-//				console.log("drawshootchart");
-//				console.log(gamesOfSelectedTeam);
-//				console.log(gamesOfSelectedTeam[srartIndex]);
-//				console.log(gamesOfSelectedTeam[stopIndex]);
-				shootingChart(srartIndex,stopIndex);
-
-		 });
+		dispatch.on("change.drawshootchart", function(d) {
+				shootingChart(d);
+		 });	 
 	}
 
 	function drawtreemap()
@@ -611,6 +618,13 @@
 	}
 	
 
+	function shootingType(d)
+	{
+		dispatch.on("change.otherChart", function(srartIndex, stopIndex) {
+			shootingType(d);
+		 });
+	}
+	
 	function otherChart()
 	{
 		dispatch.on("change.otherChart", function(srartIndex, stopIndex) {
@@ -629,19 +643,31 @@
 		shootingChartDiv.select(".shootingchart").remove();
 	}
 	
+	function shootingType(d)
+	{
+		console.log(d);
+		
+		var shootingTypefilter = crossfilter();
+		shootingTypefilter.dimension(function(d) { return d.type; });
+		
+		shootingTypefilter.group("")
+		
+	}
+		
 	var xcount;
 	var shootsvg
 	var shc_xscale;
 	var shc_yscale;
-	function shootingChart(start, end)
+	
+	function shootingChart(d)
 	{
 		clearShootingChart();
-		
+		//console.log("there")
+		console.log(d);
 		shootsvg = shootingChartDiv.append("svg")	
 						.attr("width", courtimgwidth)
 						.attr("height", courtimgheight)
 						.attr("class", "shootingchart")
-						
 				
 		shc_xscale = d3.scale.linear()
 						.domain([0, coordinateX])
@@ -650,44 +676,22 @@
 		shc_yscale = d3.scale.linear()
 						.domain([0, coordinateY])
 						.range([0, courtimgwidth]);	
-		var sgames = [];
-		
-		var name;
-		
-		var xrealcount;
-		
-		var tasks = [];
 
-		var q = queue(1);
-		var curDate
-		var filename
-		
-		for(i = start; i <= end; i++)
-		{
-			 curDate = changeFormat(gamesOfSelectedTeam[i].Date);
-			 filename = "datasets/2009-2010.regular_season/" + curDate + "." + teamAbbreviation[gamesOfSelectedTeam[i].Visitor]
-						+ teamAbbreviation[gamesOfSelectedTeam[i].Home] + ".csv";
-			q.defer(d3.csv,filename);
-		}
-		q.await(addShootingPoints);
+		addShootingPoints(d);
 	}
 
-	function addShootingPoints(err)
+	function addShootingPoints(arguments)
 	{
-		 if(err) return;
-		 
+		 //if(err) return;
+		 console.log(arguments);
 		 var d = new Array();
+		 
 		 for (var i=1; i<arguments.length; i++)
 		 {
 			 Array.prototype.push.apply(d , arguments[i]);
-			// d = arguments[i];
 		}
 
-	
-		//console.log(d);
-		
-		
-			var curDate;
+		var curDate;
 			var shotgroup;
 			
 				d.forEach(function(d)
